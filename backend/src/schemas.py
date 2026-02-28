@@ -123,7 +123,6 @@ class SummarizeResponse(BaseModel):
     summary: str
     warnings: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
-    model: str
 
 
 class SummarizeStatusResponse(BaseModel):

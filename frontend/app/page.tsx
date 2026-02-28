@@ -103,7 +103,7 @@ export default function HomePage() {
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
   const [summarizeStatus, setSummarizeStatus] = useState<SummarizeStatus>({
     enabled: false,
-    message: "AI要約ステータスを確認中です。"
+    message: "インサイト要約の利用可否を確認中です。"
   });
   const [summaryResult, setSummaryResult] = useState<SummarizeResponse | null>(null);
 
@@ -116,7 +116,7 @@ export default function HomePage() {
         const message =
           err instanceof Error
             ? err.message
-            : "AI要約ステータス取得に失敗しました。";
+            : "インサイト要約ステータス取得に失敗しました。";
         setSummarizeStatus({
           enabled: false,
           message
@@ -264,7 +264,7 @@ export default function HomePage() {
     }
 
     if (!summarizeStatus.enabled) {
-      setErrorTitle("AI要約が無効です。");
+      setErrorTitle("インサイト要約が無効です。");
       setErrorDetails([summarizeStatus.message]);
       return;
     }
@@ -284,7 +284,7 @@ export default function HomePage() {
       setSummaryResult(summary);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "AI要約の生成に失敗しました。";
+        err instanceof Error ? err.message : "インサイト要約の生成に失敗しました。";
       const parsed = parseErrorMessage(message);
       setErrorTitle(parsed.title);
       setErrorDetails(parsed.details);
@@ -394,7 +394,7 @@ export default function HomePage() {
                 className={`tab-btn ${activeTab === "summary" ? "active" : ""}`}
                 onClick={() => setActiveTab("summary")}
               >
-                AI解釈
+                インサイト
               </button>
             </div>
 
@@ -563,21 +563,21 @@ export default function HomePage() {
 
             {activeTab === "summary" && (
               <div className="chart-card">
-                <h3>AIによる解釈</h3>
+                <h3>インサイトメモ</h3>
                 <p>{summarizeStatus.message}</p>
                 <button
                   className="secondary-btn"
                   onClick={generateSummary}
                   disabled={!summarizeStatus.enabled || summarizeLoading}
                 >
-                  {summarizeLoading ? "生成中..." : "AI解釈を生成"}
+                  {summarizeLoading ? "生成中..." : "インサイトメモを生成"}
                 </button>
 
                 {summaryResult && (
                   <>
-                    <h3>summary</h3>
+                    <h3>要点</h3>
                     <p>{summaryResult.summary}</p>
-                    <h3>warnings</h3>
+                    <h3>注意点</h3>
                     {summaryResult.warnings.length === 0 ? (
                       <p>なし</p>
                     ) : (
@@ -587,7 +587,7 @@ export default function HomePage() {
                         ))}
                       </ul>
                     )}
-                    <h3>next_steps</h3>
+                    <h3>次アクション</h3>
                     {summaryResult.next_steps.length === 0 ? (
                       <p>なし</p>
                     ) : (
@@ -597,7 +597,6 @@ export default function HomePage() {
                         ))}
                       </ul>
                     )}
-                    <p className="hint">model: {summaryResult.model}</p>
                   </>
                 )}
               </div>

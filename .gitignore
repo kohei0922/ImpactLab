@@ -4,5 +4,6 @@ __pycache__/
 node_modules/
 frontend/node_modules/
 frontend/.next/
+frontend/.next-cache/
 backend/.pytest_cache/
 .env

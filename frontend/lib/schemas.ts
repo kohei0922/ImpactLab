@@ -83,8 +83,7 @@ export const SummarizeRequestSchema = z.object({
 export const SummarizeResponseSchema = z.object({
   summary: z.string(),
   warnings: z.array(z.string()).default([]),
-  next_steps: z.array(z.string()).default([]),
-  model: z.string()
+  next_steps: z.array(z.string()).default([])
 });
 
 export const SummarizeStatusSchema = z.object({

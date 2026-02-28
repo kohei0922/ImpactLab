@@ -45,7 +45,7 @@ def summarize_status() -> tuple[bool, str]:
         return (True, "OPENAI_API_KEY が設定されています。")
     return (
         False,
-        "OPENAI_API_KEY が未設定です。環境変数を設定するとAI解釈を使えます。",
+        "OPENAI_API_KEY が未設定です。環境変数を設定するとインサイト要約を使えます。",
     )
 
 
@@ -59,10 +59,12 @@ def _build_prompt(config: dict[str, Any], analysis: dict[str, Any]) -> str:
     return (
         "以下は施策効果分析の結果です。数値根拠に基づいて要約してください。\n"
         "要求:\n"
-        "- summary: 2-4文で主要結果\n"
+        "- summary: 2-4文で主要な示唆を述べる\n"
         "- warnings: 過剰解釈を避ける注意点を最大3点\n"
         "- next_steps: 実務的な次アクションを最大3点\n"
-        "- 日本語で簡潔に\n\n"
+        "- 日本語で簡潔に\n"
+        "- 画面上に既に出ている数値を繰り返し列挙しない\n"
+        "- 具体数値より、意味合い・背景仮説・打ち手を優先する\n\n"
         f"設定: {json.dumps(config, ensure_ascii=False)}\n"
         f"DID: {json.dumps(did, ensure_ascii=False)}\n"
         f"Counts: {json.dumps(counts, ensure_ascii=False)}\n"
@@ -109,7 +111,8 @@ def generate_summary(config: dict[str, Any], analysis: dict[str, Any]) -> Summar
                 "role": "system",
                 "content": (
                     "あなたは因果推論の実務アナリストです。"
-                    "必ずJSON Schemaに厳密準拠し、数値に基づき簡潔に出力してください。"
+                    "必ずJSON Schemaに厳密準拠し、"
+                    "数値の再掲よりも意思決定に使える示唆を優先してください。"
                 ),
             },
             {
@@ -173,7 +176,6 @@ def generate_summary(config: dict[str, Any], analysis: dict[str, Any]) -> Summar
             summary=parsed.get("summary", ""),
             warnings=list(parsed.get("warnings", [])),
             next_steps=list(parsed.get("next_steps", [])),
-            model=model,
         )
     except AnalysisError:
         raise
@@ -186,7 +188,7 @@ def generate_summary(config: dict[str, Any], analysis: dict[str, Any]) -> Summar
 
     if not result.summary.strip():
         raise AnalysisError(
-            "AI要約が空で返されました。",
+            "インサイト要約が空で返されました。",
             ["入力データを確認して再実行してください。"],
             status_code=502,
         )

@@ -111,7 +111,7 @@ export async function summarizeAnalysis(input: {
     try {
       payload = await response.json();
     } catch {
-      throw new Error(`AI要約に失敗しました (${response.status})`);
+      throw new Error(`インサイト要約に失敗しました (${response.status})`);
     }
     throw new Error(parseErrorPayload(payload));
   }

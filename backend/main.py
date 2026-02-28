@@ -209,5 +209,5 @@ def summarize(request: SummarizeRequest) -> SummarizeResponse:
         request.config.model_dump(mode="json"),
         request.analysis.model_dump(mode="json"),
     )
-    logger.info("summarize completed: model=%s", result.model)
+    logger.info("summarize completed")
     return result
