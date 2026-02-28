@@ -13,7 +13,7 @@
 ImpactLab/
   frontend/      # Next.js (App Router, TypeScript, Zod, Recharts)
   backend/       # FastAPI, pandas, numpy, statsmodels
-  sample_data/   # sample.csv
+  sample_data/   # sample.csv, ohtani_dodgers_campaign.csv
   README.md
   package.json   # concurrentlyで frontend+backend 同時起動
 ```
@@ -56,12 +56,27 @@ npm run dev
 ## サンプルでの動かし方
 
 1. `http://localhost:3000` を開く
-2. `sample_data/sample.csv` をアップロード
+2. `sample_data/sample.csv` または `sample_data/ohtani_dodgers_campaign.csv` をアップロード
 3. 列設定（unit/time/y/treated）を確認
-4. 施策開始日を `2025-03-03` に設定
+4. 施策開始日を設定
+   - `sample.csv` の場合: `2025-03-03`
+   - `ohtani_dodgers_campaign.csv` の場合: `2023-12-11`
 5. `Analyze` を押す
 6. 結果タブ/診断タブを確認
 7. レポートタブで HTML をダウンロード
+
+### 話題性サンプル（おすすめ）
+
+`sample_data/ohtani_dodgers_campaign.csv`
+
+- 想定ストーリー: 大谷翔平選手のドジャース移籍発表を起点に、MLB関連キャンペーンを実施
+- 粒度: 週次パネル（12店舗 × 104週）
+- 列: `unit,time,y,treated`
+- 推奨 `policy_start`: `2023-12-11`
+- 期待される挙動:
+  - treated群（sports店舗）で施策後に平均売上が上振れ
+  - DIDで正のATE
+  - 反実仮想とのギャップが施策後に拡大
 
 ## データ仕様
 
@@ -120,7 +135,6 @@ AI要約が利用可能かを返します。`OPENAI_API_KEY` 未設定時は `en
 - `summary`: 全体要約
 - `warnings`: 解釈上の注意点
 - `next_steps`: 次アクション
-- `model`: 利用モデル名
 
 環境変数:
 
