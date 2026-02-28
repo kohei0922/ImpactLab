@@ -42,7 +42,7 @@ SUMMARY_JSON_SCHEMA: dict[str, Any] = {
 def summarize_status() -> tuple[bool, str]:
     key = os.getenv("OPENAI_API_KEY", "").strip()
     if key:
-        return (True, "OPENAI_API_KEY が設定されています。")
+        return (True, "")
     return (
         False,
         "OPENAI_API_KEY が未設定です。環境変数を設定するとインサイト要約を使えます。",

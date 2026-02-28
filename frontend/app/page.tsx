@@ -564,7 +564,9 @@ export default function HomePage() {
             {activeTab === "summary" && (
               <div className="chart-card">
                 <h3>インサイトメモ</h3>
-                <p>{summarizeStatus.message}</p>
+                {!summarizeStatus.enabled && summarizeStatus.message && (
+                  <p>{summarizeStatus.message}</p>
+                )}
                 <button
                   className="secondary-btn"
                   onClick={generateSummary}
