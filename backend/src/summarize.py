@@ -117,7 +117,6 @@ def generate_summary(config: dict[str, Any], analysis: dict[str, Any]) -> Summar
                 "content": prompt,
             },
         ],
-        "temperature": 0.2,
         "response_format": {
             "type": "json_schema",
             "json_schema": SUMMARY_JSON_SCHEMA,
@@ -193,4 +192,3 @@ def generate_summary(config: dict[str, Any], analysis: dict[str, Any]) -> Summar
         )
 
     return result
-
