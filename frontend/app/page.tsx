@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChangeEvent } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Papa from "papaparse";
 import {
   CartesianGrid,
@@ -13,10 +13,15 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { analyzeCsv, fetchReportHtml } from "../lib/api";
-import type { AnalyzeRequestInput, AnalyzeResponse } from "../lib/schemas";
+import { analyzeCsv, fetchReportHtml, fetchSummarizeStatus, summarizeAnalysis } from "../lib/api";
+import type {
+  AnalyzeRequestInput,
+  AnalyzeResponse,
+  SummarizeResponse,
+  SummarizeStatus
+} from "../lib/schemas";
 
-type TabKey = "results" | "diagnostics" | "report";
+type TabKey = "results" | "diagnostics" | "report" | "summary";
 type FormState = Omit<AnalyzeRequestInput, "csv">;
 
 const INITIAL_FORM: FormState = {
@@ -92,9 +97,34 @@ export default function HomePage() {
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("results");
   const [loading, setLoading] = useState(false);
+  const [summarizeLoading, setSummarizeLoading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
+  const [summarizeStatus, setSummarizeStatus] = useState<SummarizeStatus>({
+    enabled: false,
+    message: "AI要約ステータスを確認中です。"
+  });
+  const [summaryResult, setSummaryResult] = useState<SummarizeResponse | null>(null);
+
+  useEffect(() => {
+    async function loadSummarizeStatus() {
+      try {
+        const status = await fetchSummarizeStatus();
+        setSummarizeStatus(status);
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "AI要約ステータス取得に失敗しました。";
+        setSummarizeStatus({
+          enabled: false,
+          message
+        });
+      }
+    }
+    void loadSummarizeStatus();
+  }, []);
 
   const kpis = useMemo(() => {
     if (!result) {
@@ -121,6 +151,7 @@ export default function HomePage() {
     setUploadedFileName(file.name);
     setCsvText(text);
     setResult(null);
+    setSummaryResult(null);
     setErrorTitle("");
     setErrorDetails([]);
 
@@ -185,6 +216,7 @@ export default function HomePage() {
         ...form
       });
       setResult(response);
+      setSummaryResult(null);
       setActiveTab("results");
     } catch (err) {
       const message =
@@ -221,6 +253,43 @@ export default function HomePage() {
       const parsed = parseErrorMessage(message);
       setErrorTitle(parsed.title);
       setErrorDetails(parsed.details);
+    }
+  }
+
+  async function generateSummary() {
+    if (!result) {
+      setErrorTitle("分析結果がありません。");
+      setErrorDetails(["先に Analyze を実行してください。"]);
+      return;
+    }
+
+    if (!summarizeStatus.enabled) {
+      setErrorTitle("AI要約が無効です。");
+      setErrorDetails([summarizeStatus.message]);
+      return;
+    }
+
+    setSummarizeLoading(true);
+    setErrorTitle("");
+    setErrorDetails([]);
+
+    try {
+      const summary = await summarizeAnalysis({
+        config: {
+          csv: "",
+          ...form
+        },
+        analysis: result
+      });
+      setSummaryResult(summary);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "AI要約の生成に失敗しました。";
+      const parsed = parseErrorMessage(message);
+      setErrorTitle(parsed.title);
+      setErrorDetails(parsed.details);
+    } finally {
+      setSummarizeLoading(false);
     }
   }
 
@@ -320,6 +389,12 @@ export default function HomePage() {
                 onClick={() => setActiveTab("report")}
               >
                 レポート
+              </button>
+              <button
+                className={`tab-btn ${activeTab === "summary" ? "active" : ""}`}
+                onClick={() => setActiveTab("summary")}
+              >
+                AI解釈
               </button>
             </div>
 
@@ -483,6 +558,48 @@ export default function HomePage() {
                 >
                   レポートをダウンロード
                 </button>
+              </div>
+            )}
+
+            {activeTab === "summary" && (
+              <div className="chart-card">
+                <h3>AIによる解釈</h3>
+                <p>{summarizeStatus.message}</p>
+                <button
+                  className="secondary-btn"
+                  onClick={generateSummary}
+                  disabled={!summarizeStatus.enabled || summarizeLoading}
+                >
+                  {summarizeLoading ? "生成中..." : "AI解釈を生成"}
+                </button>
+
+                {summaryResult && (
+                  <>
+                    <h3>summary</h3>
+                    <p>{summaryResult.summary}</p>
+                    <h3>warnings</h3>
+                    {summaryResult.warnings.length === 0 ? (
+                      <p>なし</p>
+                    ) : (
+                      <ul>
+                        {summaryResult.warnings.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <h3>next_steps</h3>
+                    {summaryResult.next_steps.length === 0 ? (
+                      <p>なし</p>
+                    ) : (
+                      <ul>
+                        {summaryResult.next_steps.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <p className="hint">model: {summaryResult.model}</p>
+                  </>
+                )}
               </div>
             )}
           </section>

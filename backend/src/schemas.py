@@ -105,3 +105,27 @@ class ErrorResponse(BaseModel):
     message: str
     details: list[str] = Field(default_factory=list)
 
+
+class SummaryConfig(BaseModel):
+    unit_col: str
+    time_col: str
+    y_col: str
+    treated_col: str
+    policy_start: date
+
+
+class SummarizeRequest(BaseModel):
+    config: SummaryConfig
+    analysis: AnalyzeResponse
+
+
+class SummarizeResponse(BaseModel):
+    summary: str
+    warnings: list[str] = Field(default_factory=list)
+    next_steps: list[str] = Field(default_factory=list)
+    model: str
+
+
+class SummarizeStatusResponse(BaseModel):
+    enabled: bool
+    message: str

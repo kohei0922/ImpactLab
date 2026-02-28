@@ -22,7 +22,11 @@ from backend.src.schemas import (
     ErrorResponse,
     ReportRequest,
     SeriesResult,
+    SummarizeRequest,
+    SummarizeResponse,
+    SummarizeStatusResponse,
 )
+from backend.src.summarize import generate_summary, summarize_status
 from backend.src.transform import add_post_column, build_counts, build_group_means
 from backend.src.validate import build_diagnostics, validate_and_prepare
 
@@ -188,3 +192,22 @@ def post_report(request: ReportRequest) -> HTMLResponse:
         request.analysis.model_dump(mode="json"),
     )
     return HTMLResponse(content=html)
+
+
+@app.get("/summarize/status", response_model=SummarizeStatusResponse)
+def get_summarize_status() -> SummarizeStatusResponse:
+    enabled, message = summarize_status()
+    return SummarizeStatusResponse(enabled=enabled, message=message)
+
+
+@app.post("/summarize", response_model=SummarizeResponse)
+def summarize(request: SummarizeRequest) -> SummarizeResponse:
+    logger.info("summarize requested: policy_start=%s", request.config.policy_start)
+    result = _timed(
+        "summarize",
+        generate_summary,
+        request.config.model_dump(mode="json"),
+        request.analysis.model_dump(mode="json"),
+    )
+    logger.info("summarize completed: model=%s", result.model)
+    return result

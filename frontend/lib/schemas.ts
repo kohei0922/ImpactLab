@@ -67,6 +67,32 @@ export const ErrorResponseSchema = z.object({
   details: z.array(z.string()).default([])
 });
 
+export const SummaryConfigSchema = z.object({
+  unit_col: z.string().min(1),
+  time_col: z.string().min(1),
+  y_col: z.string().min(1),
+  treated_col: z.string().min(1),
+  policy_start: z.string().min(1)
+});
+
+export const SummarizeRequestSchema = z.object({
+  config: SummaryConfigSchema,
+  analysis: AnalyzeResponseSchema
+});
+
+export const SummarizeResponseSchema = z.object({
+  summary: z.string(),
+  warnings: z.array(z.string()).default([]),
+  next_steps: z.array(z.string()).default([]),
+  model: z.string()
+});
+
+export const SummarizeStatusSchema = z.object({
+  enabled: z.boolean(),
+  message: z.string()
+});
+
 export type AnalyzeRequestInput = z.infer<typeof AnalyzeRequestSchema>;
 export type AnalyzeResponse = z.infer<typeof AnalyzeResponseSchema>;
-
+export type SummarizeResponse = z.infer<typeof SummarizeResponseSchema>;
+export type SummarizeStatus = z.infer<typeof SummarizeStatusSchema>;

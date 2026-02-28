@@ -2,8 +2,13 @@ import {
   AnalyzeRequestSchema,
   AnalyzeResponseSchema,
   ErrorResponseSchema,
+  SummarizeRequestSchema,
+  SummarizeResponseSchema,
+  SummarizeStatusSchema,
   type AnalyzeRequestInput,
-  type AnalyzeResponse
+  type AnalyzeResponse,
+  type SummarizeResponse,
+  type SummarizeStatus
 } from "./schemas";
 
 const BACKEND_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
@@ -69,3 +74,48 @@ export async function fetchReportHtml(token: string): Promise<string> {
   return response.text();
 }
 
+export async function fetchSummarizeStatus(): Promise<SummarizeStatus> {
+  const response = await fetch(`${BACKEND_BASE}/summarize/status`, {
+    method: "GET"
+  });
+
+  if (!response.ok) {
+    let payload: unknown = null;
+    try {
+      payload = await response.json();
+    } catch {
+      throw new Error(`要約ステータス取得に失敗しました (${response.status})`);
+    }
+    throw new Error(parseErrorPayload(payload));
+  }
+
+  const data = await response.json();
+  return SummarizeStatusSchema.parse(data);
+}
+
+export async function summarizeAnalysis(input: {
+  config: AnalyzeRequestInput;
+  analysis: AnalyzeResponse;
+}): Promise<SummarizeResponse> {
+  const request = SummarizeRequestSchema.parse(input);
+  const response = await fetch(`${BACKEND_BASE}/summarize`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(request)
+  });
+
+  if (!response.ok) {
+    let payload: unknown = null;
+    try {
+      payload = await response.json();
+    } catch {
+      throw new Error(`AI要約に失敗しました (${response.status})`);
+    }
+    throw new Error(parseErrorPayload(payload));
+  }
+
+  const data = await response.json();
+  return SummarizeResponseSchema.parse(data);
+}

@@ -109,6 +109,24 @@ npm run dev
 
 `token` または `config + analysis` を渡してHTMLレポートを返します。
 
+### `GET /summarize/status`
+
+AI要約が利用可能かを返します。`OPENAI_API_KEY` 未設定時は `enabled=false` です。
+
+### `POST /summarize`
+
+分析結果JSONをOpenAI APIに渡し、以下を返します。
+
+- `summary`: 全体要約
+- `warnings`: 解釈上の注意点
+- `next_steps`: 次アクション
+- `model`: 利用モデル名
+
+環境変数:
+
+- `OPENAI_API_KEY` (必須)
+- `OPENAI_MODEL` (任意、既定: `gpt-4.1-mini`)
+
 ## 設計メモ
 
 バックエンドは責務ごとに分割しています。
@@ -142,4 +160,3 @@ npm run dev
 ## スクリーンショット
 
 任意。必要であれば `docs/` 配下に画像を追加してください。
-
