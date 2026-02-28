@@ -306,7 +306,8 @@ export default function HomePage() {
         {uploadedFileName && <p className="hint">読み込み済み: {uploadedFileName}</p>}
         {!uploadedFileName && (
           <p className="hint">
-            <code>sample_data/sample.csv</code> をそのまま使えます。
+            <code>sample_data/sample.csv</code> または{" "}
+            <code>sample_data/ohtani_dodgers_campaign.csv</code> をそのまま使えます。
           </p>
         )}
 
@@ -576,30 +577,36 @@ export default function HomePage() {
                 </button>
 
                 {summaryResult && (
-                  <>
-                    <h3>要点</h3>
-                    <p>{summaryResult.summary}</p>
-                    <h3>注意点</h3>
-                    {summaryResult.warnings.length === 0 ? (
-                      <p>なし</p>
-                    ) : (
-                      <ul>
-                        {summaryResult.warnings.map((item) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    )}
-                    <h3>次アクション</h3>
-                    {summaryResult.next_steps.length === 0 ? (
-                      <p>なし</p>
-                    ) : (
-                      <ul>
-                        {summaryResult.next_steps.map((item) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
+                  <article className="insight-article">
+                    <h2 className="insight-title">{summaryResult.headline}</h2>
+                    <p className="insight-lead">{summaryResult.summary}</p>
+
+                    <section className="insight-section">
+                      <h3>留意点</h3>
+                      {summaryResult.warnings.length === 0 ? (
+                        <p>なし</p>
+                      ) : (
+                        <ul>
+                          {summaryResult.warnings.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </section>
+
+                    <section className="insight-section">
+                      <h3>次に打つ手</h3>
+                      {summaryResult.next_steps.length === 0 ? (
+                        <p>なし</p>
+                      ) : (
+                        <ul>
+                          {summaryResult.next_steps.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </section>
+                  </article>
                 )}
               </div>
             )}

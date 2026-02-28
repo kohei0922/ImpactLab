@@ -19,9 +19,13 @@ SUMMARY_JSON_SCHEMA: dict[str, Any] = {
         "type": "object",
         "additionalProperties": False,
         "properties": {
+            "headline": {
+                "type": "string",
+                "description": "記事タイトル風の一行見出し（10-28文字）",
+            },
             "summary": {
                 "type": "string",
-                "description": "分析結果の全体要約（2-4文）",
+                "description": "分析結果の全体要約（3-5文）",
             },
             "warnings": {
                 "type": "array",
@@ -34,7 +38,7 @@ SUMMARY_JSON_SCHEMA: dict[str, Any] = {
                 "description": "次に取るべき実務アクション",
             },
         },
-        "required": ["summary", "warnings", "next_steps"],
+        "required": ["headline", "summary", "warnings", "next_steps"],
     },
 }
 
@@ -54,22 +58,44 @@ def _build_prompt(config: dict[str, Any], analysis: dict[str, Any]) -> str:
     counts = analysis.get("counts", {})
     diagnostics = analysis.get("diagnostics", {})
     effect_series = analysis.get("series", {}).get("effect_series", [])
+    group_means = analysis.get("series", {}).get("group_means", [])
 
     recent_effect = effect_series[-1] if effect_series else {}
+    first_effect = effect_series[0] if effect_series else {}
+    pretrend_flag = diagnostics.get("pretrend_flag", "ok")
+    diag_messages = diagnostics.get("messages", [])
+    direction = "増加" if float(did.get("ate", 0.0)) >= 0 else "減少"
+
+    storyline_facts = {
+        "effect_direction": direction,
+        "pretrend_flag": pretrend_flag,
+        "n_obs": counts.get("n_obs"),
+        "n_units": counts.get("n_units"),
+        "effect_points": len(effect_series),
+        "first_effect_snapshot": first_effect,
+        "latest_effect_snapshot": recent_effect,
+        "group_mean_points": len(group_means),
+        "diagnostic_messages": diag_messages[:5],
+    }
+
     return (
-        "以下は施策効果分析の結果です。数値根拠に基づいて要約してください。\n"
+        "以下は施策効果分析の結果です。"
+        "レポート向けに『記事として読みやすく、結論先行で刺さるが誇張しない』日本語で要約してください。\n"
         "要求:\n"
-        "- summary: 2-4文で主要な示唆を述べる\n"
+        "- headline: タイトルとしてそのまま置ける一行。『見出し:』のような接頭語は禁止\n"
+        "- summary: 3-5文。冒頭1文で結論を断言し、その後に根拠と実務インパクトを述べる\n"
         "- warnings: 過剰解釈を避ける注意点を最大3点\n"
         "- next_steps: 実務的な次アクションを最大3点\n"
         "- 日本語で簡潔に\n"
         "- 画面上に既に出ている数値を繰り返し列挙しない\n"
-        "- 具体数値より、意味合い・背景仮説・打ち手を優先する\n\n"
+        "- 具体数値より、意味合い・背景仮説・打ち手を優先する\n"
+        "- どの案件でも使える定型句は避け、今回データ固有の文脈で述べる\n"
+        "- 曖昧な婉曲表現（『可能性がある』『示唆される』）の連発を避ける\n\n"
         f"設定: {json.dumps(config, ensure_ascii=False)}\n"
         f"DID: {json.dumps(did, ensure_ascii=False)}\n"
         f"Counts: {json.dumps(counts, ensure_ascii=False)}\n"
         f"Diagnostics: {json.dumps(diagnostics, ensure_ascii=False)}\n"
-        f"Latest effect point: {json.dumps(recent_effect, ensure_ascii=False)}\n"
+        f"Storyline facts: {json.dumps(storyline_facts, ensure_ascii=False)}\n"
     )
 
 
@@ -173,6 +199,7 @@ def generate_summary(config: dict[str, Any], analysis: dict[str, Any]) -> Summar
         content = _extract_content(message.get("content"))
         parsed = json.loads(content)
         result = SummarizeResponse(
+            headline=parsed.get("headline", ""),
             summary=parsed.get("summary", ""),
             warnings=list(parsed.get("warnings", [])),
             next_steps=list(parsed.get("next_steps", [])),
@@ -186,9 +213,9 @@ def generate_summary(config: dict[str, Any], analysis: dict[str, Any]) -> Summar
             status_code=502,
         ) from exc
 
-    if not result.summary.strip():
+    if not result.headline.strip() or not result.summary.strip():
         raise AnalysisError(
-            "インサイト要約が空で返されました。",
+            "インサイト要約の本文または見出しが空で返されました。",
             ["入力データを確認して再実行してください。"],
             status_code=502,
         )

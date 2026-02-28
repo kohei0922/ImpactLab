@@ -120,6 +120,7 @@ class SummarizeRequest(BaseModel):
 
 
 class SummarizeResponse(BaseModel):
+    headline: str
     summary: str
     warnings: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)

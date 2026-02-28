@@ -204,6 +204,35 @@ button:disabled {
   font-size: 15px;
 }
 
+.insight-article {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.insight-title {
+  margin: 0 0 8px;
+  font-size: 23px;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+}
+
+.insight-lead {
+  margin: 0;
+  color: #2f3d4f;
+  line-height: 1.8;
+}
+
+.insight-section {
+  margin-top: 14px;
+}
+
+.insight-section h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
 .diagnostics {
   display: grid;
   gap: 10px;
@@ -249,4 +278,3 @@ button:disabled {
     padding: 16px 10px 28px;
   }
 }
-
