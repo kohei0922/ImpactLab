@@ -8,10 +8,9 @@
   "scripts": {
     "setup:backend": "py -3.11 -m venv .venv && .\\.venv\\Scripts\\python -m pip install --upgrade pip && .\\.venv\\Scripts\\python -m pip install -r backend/requirements.txt",
     "dev": "concurrently -k -n FRONTEND,BACKEND -c cyan,green \"npm run dev -w frontend\" \"npm run dev:backend\"",
-    "dev:backend": ".\\.venv\\Scripts\\python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000"
+    "dev:backend": ".\\.venv\\Scripts\\python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --env-file .env"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
   }
 }
-
